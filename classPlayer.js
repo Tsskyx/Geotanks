@@ -8,7 +8,8 @@ class Player {
     }
 
     draw(p, arena) {
-        this.pos[0] = p.constrain(this.pos[0] + (this.move[3] - this.move[1]) * this.speedMultiplier, -arena.arenaHalfSize, arena.arenaHalfSize);
-        this.pos[1] = p.constrain(this.pos[1] + (this.move[2] - this.move[0]) * this.speedMultiplier, -arena.arenaHalfSize, arena.arenaHalfSize);
+        let size1 = arena.size.arena.px.half;
+        this.pos[0] = p.constrain(this.pos[0] + (this.move[3] - this.move[1]) * this.speedMultiplier, -size1, size1);
+        this.pos[1] = p.constrain(this.pos[1] + (this.move[2] - this.move[0]) * this.speedMultiplier, -size1, size1);
     }
 }

@@ -1,37 +1,60 @@
 class Shape {
+    static fills = ["rgb(255, 230, 105)", "rgb(250, 120, 120)", "rgb(120, 140, 250)", "rgb(140, 255, 105)", "rgb(235, 120, 220)"];
+    static outlines = ["rgb(190, 175, 80)", "rgb(190, 90, 90)", "rgb(90, 105, 190)", "rgb(100, 190, 80)", "rgb(180, 90, 165)"];
+    static vertices = [4, 3, 5];
+    static maxRadiusScale = [1, 1, 1.5];
+    static probability = [50, 90, 100];
+
     constructor(p, arena) {
-        this.orbitRadius = tileSize * 5;
-        this.rotationSpeed = p.TAU / 60;
-        this.orbitSpeed = -p.TAU / 120;
-        
-        this.randType = p.random(10);
-        this.type = this.randType < 6 ? 0 : this.randType < 9 ? 1 : 2;
-        this.xPivot = p.random(-arena.innerHalfSize, arena.innerHalfSize);
-        this.yPivot = p.random(-arena.innerHalfSize, arena.innerHalfSize);
-        this.orbitAngle = p.random(p.TAU);
-        this.rotation = shapeDefaultAngle[this.type] + p.random(p.TAU);
+        const rand = p.random(Shape.probability[Shape.probability.length - 1]);
+        for (let i = 0; i < Shape.probability.length; i++) {
+            if (rand <= Shape.probability[i]) {
+                this.type = i;
+                break;
+            }
+        }
+        this.orbit = {
+            x: arena.size.inner.px.half * p.random(-1, 1),
+            y: arena.size.inner.px.half * p.random(-1, 1),
+            rad: arena.size.tile * 5,
+            angle: p.random(p.TAU),
+            vel: p.TAU / p.getTargetFrameRate() / 240 * (p.floor(p.random(2)) * 2 - 1)
+        };
+        this.spin = {
+            angle: p.random(p.TAU),
+            vel: this.orbit.vel * 2,
+            maxRad: Shape.maxRadiusScale[this.type] * arena.size.tile,
+        };
+        this.pos = {
+            x: this.orbit.x + this.orbit.rad * p.cos(this.orbit.angle),
+            y: this.orbit.y + this.orbit.rad * p.sin(this.orbit.angle)
+        };
     }
 
-    draw(p, arena) {
+    calcInteract(p, arena, shapes) {
+
+    }
+
+    moveDraw(p) {
+        this.spin.angle = (this.spin.angle + this.spin.vel) % p.TAU;
+        this.orbit.angle = (this.orbit.angle + this.orbit.vel) % p.TAU;
+        this.pos.x = this.orbit.x + this.orbit.rad * p.cos(this.orbit.angle);
+        this.pos.y = this.orbit.y + this.orbit.rad * p.sin(this.orbit.angle);
+
         p.strokeJoin(p.ROUND);
-        p.strokeWeight(outlineWidth);
-        p.fill(shapeFills[this.type]);
-        p.stroke(shapeOutlines[this.type]);
+        p.strokeWeight(globalOutlineWidth);
+        p.fill(Shape.fills[this.type]);
+        p.stroke(Shape.outlines[this.type]);
         p.push();
-        p.translate(
-            this.xPivot + this.orbitRadius * p.cos(this.orbitAngle),
-            this.yPivot + this.orbitRadius * p.sin(this.orbitAngle)
-        );
-        this.rotation += this.rotationSpeed / p.getTargetFrameRate();
-        p.rotate(this.rotation);
         p.beginShape();
-        for (let i = 0; i < shapeVertices[this.type]; i++) {
-            let angle = i * p.TAU / shapeVertices[this.type];
-            let scale = shapeMaxRadius[this.type] * arena.tileSize;
-            p.vertex(p.sin(angle) * scale, -p.cos(angle) * scale);
+        for (let i = 0; i < Shape.vertices[this.type]; i++) {
+            let angle = i * p.TAU / Shape.vertices[this.type];
+            p.vertex(
+                this.pos.x + this.spin.maxRad * p.cos(angle + this.spin.angle),
+                this.pos.y + this.spin.maxRad * p.sin(angle + this.spin.angle),
+            );
         }
         p.endShape(p.CLOSE);
         p.pop();
-        this.orbitAngle += this.orbitSpeed / p.getTargetFrameRate();
     }
 }
