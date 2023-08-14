@@ -32,12 +32,14 @@ new p5(p => {
         for (let i = 0; i < 4; i++)
             if (p.keyCode == arrowKeys[i] || p.key == wasdKeys[i])
                 player.move[i] = 1;
+        return false;
     };
       
     p.keyReleased = () => {
         for (let i = 0; i < 4; i++)
             if (p.keyCode == arrowKeys[i] || p.key == wasdKeys[i])
                 player.move[i] = 0;
+        return false;
     }
 
 }, "gameWindow");
